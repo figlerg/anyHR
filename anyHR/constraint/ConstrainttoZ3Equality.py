@@ -1,7 +1,7 @@
 from z3 import *
-from prs.LRAParserVisitor import LRAParserVisitor
+from parser.LRAParserVisitor import LRAParserVisitor
 
-class LRAtoZ3(LRAParserVisitor):
+class LRAtoZ3Equality(LRAParserVisitor):
     '''
     This class translates the LRA to its Z3 representation
     '''
@@ -21,33 +21,33 @@ class LRAtoZ3(LRAParserVisitor):
     def visitLRA_Neq(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
         exp_2 = self.visit(ctx.expression(1))
-        return exp_1 != exp_2
+        return exp_1 == exp_2
 
     def visitLRA_GEQ(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
         exp_2 = self.visit(ctx.expression(1))
-        return exp_1 >= exp_2
+        return exp_1 == exp_2
 
     def visitLRA_LEQ(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
         exp_2 = self.visit(ctx.expression(1))
-        return exp_1 <= exp_2
+        return exp_1 == exp_2
 
     def visitLRA_Greater(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
         exp_2 = self.visit(ctx.expression(1))
-        return exp_1 > exp_2
+        return exp_1 == exp_2
 
     def visitLRA_Less(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
         exp_2 = self.visit(ctx.expression(1))
-        return exp_1 < exp_2
+        return exp_1 == exp_2
 
     def visitLRA_In(self, ctx):
         exp = self.visit(ctx.expression(0))
         exp_low = self.visit(ctx.expression(1))
         exp_up = self.visit(ctx.expression(2))
-        return And(exp_low < exp, exp < exp_up)
+        return Or(exp_low == exp, exp == exp_up)
 
     def visitExpressionExponential(self, ctx):
         exp = self.visit(ctx.expression())

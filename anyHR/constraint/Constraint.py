@@ -4,8 +4,8 @@ from antlr4.CommonTokenStream import CommonTokenStream
 
 from constraint.LRAQuantitativeEvaluator import LRAQuantitativeEvaluator
 from constraint.LRAtoZ3Equality import LRAtoZ3Equality
-from prs.LRALexer import LRALexer
-from prs.LRAParser import LRAParser
+from parser.LRALexer import LRALexer
+from parser.LRAParser import LRAParser
 from constraint.LRAtoZ3 import LRAtoZ3
 from constraint.LRAEvaluator import LRAEvaluator
 

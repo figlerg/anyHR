@@ -1,5 +1,5 @@
 from z3 import *
-from prs.LRAParserVisitor import LRAParserVisitor
+from parser.LRAParserVisitor import LRAParserVisitor
 
 class LRAQuantitativeEvaluator(LRAParserVisitor):
     """

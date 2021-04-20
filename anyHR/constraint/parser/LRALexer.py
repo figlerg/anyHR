@@ -1,4 +1,4 @@
-# Generated from LRALexer.g4 by ANTLR 4.5.1
+# Generated from ConstraintLexer.g4 by ANTLR 4.5.1
 from antlr4 import *
 from io import StringIO
 
@@ -211,7 +211,7 @@ class LRALexer(Lexer):
                   "LetterOrUnderscore", "Letter", "LINE_TERMINATOR", "WHITESPACE", 
                   "COMMENT", "LINE_COMMENT" ]
 
-    grammarFileName = "LRALexer.g4"
+    grammarFileName = "ConstraintLexer.g4"
 
     def __init__(self, input=None):
         super().__init__(input)

@@ -1,4 +1,4 @@
-# Generated from LRAParser.g4 by ANTLR 4.5.1
+# Generated from ConstraintParser.g4 by ANTLR 4.5.1
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -36,7 +36,7 @@ def serializedATN():
 
 class LRAParser ( Parser ):
 
-    grammarFileName = "LRAParser.g4"
+    grammarFileName = "ConstraintParser.g4"
 
     atn = ATNDeserializer().deserialize(serializedATN())
 

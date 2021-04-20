@@ -1,7 +1,7 @@
 parser grammar LRAParser ;
 
 options {
-	tokenVocab = LRALexer ;
+	tokenVocab = ConstraintLexer ;
 }
 
 lra

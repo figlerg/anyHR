@@ -1,5 +1,5 @@
 import math
-from prs.LRAParserVisitor import LRAParserVisitor
+from parser.LRAParserVisitor import LRAParserVisitor
 
 class LRAEvaluator(LRAParserVisitor):
     """

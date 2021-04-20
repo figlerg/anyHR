@@ -16,17 +16,30 @@ class HRVariant(Enum):
     SHRINKING_SMT = 4
     CDHR = 5
 
+class DirectionSampling(Enum):
+    RDHR = 0
+    CDHR = 1
+
+class Shrinking(Enum):
+    NO_SHRINKING = 0
+    SHRINKING = 1
+
+class InitPoint(Enum):
+    PSO = 0
+    SMT = 1
+
 
 class HitAndRun:
-    def __init__(self, S=None, B=None, nb_samples=100, precision=3, variant=HRVariant.VANILLA):
-        self.S = S
-        self.B = B
-        self.nb_samples = nb_samples
-        self.variant = variant
+    def __init__(self, constraint, bounding_box, direction_sampling=DirectionSampling.RDHR,
+                 shrinking=Shrinking.NO_SHRINKING, init_point=InitPoint.PSO):
+        self.constraint = constraint
+        self.bounding_box = bounding_box
         self.starting_point = self._starting_point()
         self.current_point = self.starting_point
-        self.precision = precision
-        self.contur_solver = None
+
+        self.shrinking = shrinking
+        self.direction_sampling = direction_sampling
+        self.init_point = init_point
 
 
     def next_sample(self):
@@ -45,7 +58,7 @@ class HitAndRun:
         success = False
         while not success:
             a = self._random_direction()
-            inter, success = self._line_box_intersection(a, b, self.B)
+            inter, success = self._line_box_intersection(a, b, self.bounding_box)
 
         success = False
         rejections = -1
@@ -63,7 +76,7 @@ class HitAndRun:
                 s_i = (x_1 - x_0)*rnd + x_0
                 sample.append(s_i)
 
-            success = self.S.evaluate(sample)
+            success = self.constraint.evaluate(sample)
             rejections += 1
 
         self.current_point = sample
@@ -77,7 +90,7 @@ class HitAndRun:
         inter = []
         while not inter:
             a = self._random_direction()
-            inter = self._line_S_intersection(a, b, self.S)
+            inter = self._line_S_intersection(a, b, self.constraint)
             counter = counter + 1
 
         success = False
@@ -96,7 +109,7 @@ class HitAndRun:
                 s_i = (x_1 - x_0)*rnd + x_0
                 sample.append(s_i)
 
-            success = self.S.evaluate(sample)
+            success = self.constraint.evaluate(sample)
             rejections += 1
 
         self.current_point = sample
@@ -109,7 +122,7 @@ class HitAndRun:
         success = False
         while not success:
             a = self._random_direction()
-            inter, success = self._line_box_intersection(a, b, self.B)
+            inter, success = self._line_box_intersection(a, b, self.bounding_box)
 
         success = False
         rejections = -1
@@ -130,7 +143,7 @@ class HitAndRun:
                 s_i = b[i] + rnd*a[i]
                 sample.append(s_i)
 
-            success = self.S.evaluate(sample)
+            success = self.constraint.evaluate(sample)
 
             if not success:
                 mid = r_min + 0.5*(r_max - r_min)
@@ -153,7 +166,7 @@ class HitAndRun:
         success = False
         while not success:
             a, direction_int = self._random_direction_cdhr()
-            inter, success = self._line_box_intersection_cdhr(a, direction_int, b, self.B)
+            inter, success = self._line_box_intersection_cdhr(a, direction_int, b, self.bounding_box)
 
         success = False
         rejections = -1
@@ -171,7 +184,7 @@ class HitAndRun:
                 s_i = (x_1 - x_0)*rnd + x_0
                 sample.append(s_i)
 
-            success = self.S.evaluate(sample)
+            success = self.constraint.evaluate(sample)
             rejections += 1
 
         self.current_point = sample
@@ -240,98 +253,98 @@ class HitAndRun:
 
         return solutions, flag
 
-    def contour(self):
-        self.contur_solver = self.S.contour()
+    # def contour(self):
+    #     self.contur_solver = self.constraint.contour()
 
-    def _line_S_intersection(self, s0, s1, S):
-        solver = self.S.contour()
-        #solver.push()
-
-        for i in range(len(s0)):
-            y0 = s0[i]
-            y1 = s1[i]
-            y = Real(S.var_name_list[i])
-            if i == 0:
-                x0 = s0[i]
-                x1 = s1[i]
-                x = Real(S.var_name_list[i])
-            else:
-                a = (y1-y0)/(x1-x0)
-                b = y0 - a*x0
-                a_str = '%.3f' % a
-                b_str = '%.3f' % b
-                a_smt = RealVal(a_str)
-                b_smt = RealVal(b_str)
-                constraint = y == a_smt*x + b_smt
-                solver.add(constraint)
-
-        verdict = solver.check()
-        solutions = []
-        while verdict == sat:
-            model = solver.model()
-            for var in model:
-                c = Real(str(var)) != model[var]
-                solver.add(c)
-
-            solution = []
-            for var_name in self.S.var_name_list:
-                if isinstance(model[Real(var_name)], RatNumRef):
-
-                    val = float(model[Real(var_name)].as_fraction())
-                else:
-                    val = float(model[Real(var_name)].approx(self.precision).as_fraction())
-                solution.append(val)
-
-            solutions.append(solution)
-
-            verdict = solver.check()
-
-        solutions.sort(key=self._sort_first)
-        #solver.pop()
-
-        return solutions
-
-    def _line_S_intersection_old(self, s0, s1, S):
-        solver = self.contur_solver
-        solver.push()
-
-        for i in range(len(s0)):
-            v0 = '%.3f' % s0[i]
-            v1 = '%.3f' % s1[i]
-            v0 = RealVal(v0)
-            v1 = RealVal(v1)
-            x = Real(S.var_name_list[i])
-            if i == 0:
-                x0 = v0
-                x1 = v1
-                tmp = RealVal(1)/(v1-v0)
-                t = (x - v0)*tmp
-            else:
-                tmp = RealVal(1)/(x1-x0)
-                y = x == ((v1 - v0)*(t - x0))*tmp + v0
-                solver.add(y)
-
-        verdict = solver.check()
-        solutions = []
-        while verdict == sat:
-            model = solver.model()
-            for var in model:
-                c = Real(str(var)) != model[var]
-                solver.add(c)
-
-            solution = []
-            for var_name in self.S.var_name_list:
-                val = float(model[Real(var_name)].approx(self.precision).as_fraction())
-                solution.append(val)
-
-            solutions.append(solution)
-
-            verdict = solver.check()
-
-        solutions.sort(key=self._sort_first)
-        solver.pop()
-
-        return solutions
+    # def _line_S_intersection(self, s0, s1, S):
+    #     solver = self.constraint.contour()
+    #     #solver.push()
+    #
+    #     for i in range(len(s0)):
+    #         y0 = s0[i]
+    #         y1 = s1[i]
+    #         y = Real(S.var_name_list[i])
+    #         if i == 0:
+    #             x0 = s0[i]
+    #             x1 = s1[i]
+    #             x = Real(S.var_name_list[i])
+    #         else:
+    #             a = (y1-y0)/(x1-x0)
+    #             b = y0 - a*x0
+    #             a_str = '%.3f' % a
+    #             b_str = '%.3f' % b
+    #             a_smt = RealVal(a_str)
+    #             b_smt = RealVal(b_str)
+    #             constraint = y == a_smt*x + b_smt
+    #             solver.add(constraint)
+    #
+    #     verdict = solver.check()
+    #     solutions = []
+    #     while verdict == sat:
+    #         model = solver.model()
+    #         for var in model:
+    #             c = Real(str(var)) != model[var]
+    #             solver.add(c)
+    #
+    #         solution = []
+    #         for var_name in self.constraint.var_name_list:
+    #             if isinstance(model[Real(var_name)], RatNumRef):
+    #
+    #                 val = float(model[Real(var_name)].as_fraction())
+    #             else:
+    #                 val = float(model[Real(var_name)].approx(self.precision).as_fraction())
+    #             solution.append(val)
+    #
+    #         solutions.append(solution)
+    #
+    #         verdict = solver.check()
+    #
+    #     solutions.sort(key=self._sort_first)
+    #     #solver.pop()
+    #
+    #     return solutions
+    #
+    # def _line_S_intersection_old(self, s0, s1, S):
+    #     solver = self.contur_solver
+    #     solver.push()
+    #
+    #     for i in range(len(s0)):
+    #         v0 = '%.3f' % s0[i]
+    #         v1 = '%.3f' % s1[i]
+    #         v0 = RealVal(v0)
+    #         v1 = RealVal(v1)
+    #         x = Real(S.var_name_list[i])
+    #         if i == 0:
+    #             x0 = v0
+    #             x1 = v1
+    #             tmp = RealVal(1)/(v1-v0)
+    #             t = (x - v0)*tmp
+    #         else:
+    #             tmp = RealVal(1)/(x1-x0)
+    #             y = x == ((v1 - v0)*(t - x0))*tmp + v0
+    #             solver.add(y)
+    #
+    #     verdict = solver.check()
+    #     solutions = []
+    #     while verdict == sat:
+    #         model = solver.model()
+    #         for var in model:
+    #             c = Real(str(var)) != model[var]
+    #             solver.add(c)
+    #
+    #         solution = []
+    #         for var_name in self.constraint.var_name_list:
+    #             val = float(model[Real(var_name)].approx(self.precision).as_fraction())
+    #             solution.append(val)
+    #
+    #         solutions.append(solution)
+    #
+    #         verdict = solver.check()
+    #
+    #     solutions.sort(key=self._sort_first)
+    #     solver.pop()
+    #
+    #     return solutions
 
     def _sort_first(self, l):
         return l[0]
@@ -346,7 +359,7 @@ class HitAndRun:
 
         lb = []
         ub = []
-        for b in self.B:
+        for b in self.bounding_box:
             lb.append(b[0])
             ub.append(b[1])
 
@@ -362,11 +375,11 @@ class HitAndRun:
         return out
 
     def _evaluate(self, sample):
-        return -self.S.q_evaluate(sample)
+        return -self.constraint.q_evaluate(sample)
 
 
     def _starting_point_smt(self):
-        solver = self.S.solver
+        solver = self.constraint.solver
         status = solver.check()
 
         if status == unsat:
@@ -382,14 +395,14 @@ class HitAndRun:
             out_d[str(var)] = num/den
 
         out = []
-        for var in self.S.var_name_list:
+        for var in self.constraint.var_name_list:
             out.append(out_d[var])
 
         return out
 
     def _random_direction(self):
         direction = []
-        for i in range(self.S.dimensions):
+        for i in range(self.constraint.dimensions):
             dir = np.random.uniform(-1, 1)
             direction.append(dir)
         direction = np.array(direction)
@@ -475,7 +488,7 @@ class HitAndRun:
         return x, fx, 0
 
     def _random_direction_cdhr(self):
-        n = self.S.dimensions
+        n = self.constraint.dimensions
 
         sign = np.random.rand() < 0.5 # random bit
         direction = np.random.randint(low=0, high=n)
