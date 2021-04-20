@@ -1,7 +1,7 @@
 import math
-from parser.LRAParserVisitor import LRAParserVisitor
+from anyHR.constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
 
-class LRAEvaluator(LRAParserVisitor):
+class ConstraintEvaluator(ConstraintParserVisitor):
     """
     This class evaluates to True or False a LRA expression by substituting variables
     with concrete numbers, given as input

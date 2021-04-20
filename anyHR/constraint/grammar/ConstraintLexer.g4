@@ -1,4 +1,4 @@
-lexer grammar LRALexer ;
+lexer grammar ConstraintLexer ;
 
 EULER
     : 'e' ;

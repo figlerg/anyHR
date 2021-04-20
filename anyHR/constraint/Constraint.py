@@ -2,12 +2,12 @@ from z3 import *
 from antlr4.InputStream import InputStream
 from antlr4.CommonTokenStream import CommonTokenStream
 
-from constraint.LRAQuantitativeEvaluator import LRAQuantitativeEvaluator
-from constraint.LRAtoZ3Equality import LRAtoZ3Equality
-from parser.LRALexer import LRALexer
-from parser.LRAParser import LRAParser
-from constraint.LRAtoZ3 import LRAtoZ3
-from constraint.LRAEvaluator import LRAEvaluator
+from anyHR.constraint.ConstraintQuantitativeEvaluator import ConstraintQuantitativeEvaluator
+from anyHR.constraint.ConstrainttoZ3Equality import ConstrainttoZ3Equality
+from anyHR.constraint.parser.ConstraintLexer import ConstraintLexer
+from anyHR.constraint.parser.ConstraintParser import ConstraintParser
+from anyHR.constraint.ConstrainttoZ3 import ConstrainttoZ3
+from anyHR.constraint.ConstraintEvaluator import ConstraintEvaluator
 
 class Constraints:
     """
@@ -25,31 +25,31 @@ class Constraints:
     def add_constraint(self, constraint: str):
         # parse the constraint
         input_stream = InputStream(constraint)
-        lexer = LRALexer(input_stream)
+        lexer = ConstraintLexer(input_stream)
         stream = CommonTokenStream(lexer)
-        parser = LRAParser(stream)
+        parser = ConstraintParser(stream)
         ctx = parser.lra()
 
         # Generate an evaluator for the specific constraint
         # and add it to the list
-        evaluator = LRAEvaluator(ctx, self.var_name_list)
+        evaluator = ConstraintEvaluator(ctx, self.var_name_list)
         self.c_evaluators.append(evaluator)
 
         # Generate a quantitative evaluator for the specific constraint
         # and add it to the list
-        qevaluator = LRAQuantitativeEvaluator(ctx, self.var_name_list)
+        qevaluator = ConstraintQuantitativeEvaluator(ctx, self.var_name_list)
         self.c_qevaluators.append(qevaluator)
 
         # Generate a Z3 formula for the specific constraint
         # and add it to the list
-        translator = LRAtoZ3(ctx)
+        translator = ConstrainttoZ3(ctx)
         z3_formula = translator.translate()
         self.c_formulas.append(z3_formula)
         self.solver.add(z3_formula)
 
         # Generate a contour Z3 formula for the specific constraint
         # and add it to the list
-        translator = LRAtoZ3Equality(ctx)
+        translator = ConstrainttoZ3Equality(ctx)
         z3_formula = translator.translate()
         self.c_contour_formulas.append(z3_formula)
 

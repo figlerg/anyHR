@@ -1,12 +1,17 @@
 from enum import Enum
+from functools import partial
+
+import matplotlib.pyplot as plt
 from scipy.spatial.distance import norm
 from z3 import *
-from pso.pso_ezio import *
-from functools import partial
-import numpy as np
+from anyHR.pso.pso_ezio import *
+from anyHR.constraint.Constraint import Constraints
+
+import time
 
 def _obj_wrapper(func, args, kwargs, x):
     return func(x, *args, **kwargs)
+
 
 class HRVariant(Enum):
     VANILLA = 0,
@@ -16,13 +21,16 @@ class HRVariant(Enum):
     SHRINKING_SMT = 4
     CDHR = 5
 
+
 class DirectionSampling(Enum):
     RDHR = 0
     CDHR = 1
 
+
 class Shrinking(Enum):
     NO_SHRINKING = 0
     SHRINKING = 1
+
 
 class InitPoint(Enum):
     PSO = 0
@@ -34,25 +42,70 @@ class HitAndRun:
                  shrinking=Shrinking.NO_SHRINKING, init_point=InitPoint.PSO):
         self.constraint = constraint
         self.bounding_box = bounding_box
-        self.starting_point = self._starting_point()
-        self.current_point = self.starting_point
-
         self.shrinking = shrinking
         self.direction_sampling = direction_sampling
         self.init_point = init_point
 
+        # set the starting point- either with optimizer or with smt solver
+        if init_point == InitPoint.PSO:
+            self.starting_point = self._starting_point_pso()
+        else:  # using z3/SMT
+            # TODO assert that we have polynomial constraints if we use Z3
+            self.starting_point = self._starting_point_smt()
 
-    def next_sample(self):
-        if self.variant == HRVariant.VANILLA or self.variant == HRVariant.VANILLA_SMT:
-            return self.next_sample_vanilla()
-        elif self.variant == HRVariant.SHRINKING or self.variant == HRVariant.SHRINKING_SMT:
-            return self.next_sample_with_shrinking()
-        elif self.variant == HRVariant.CDHR:
-            return self.next_sample_cdhr()
-        else:
-            return self.next_sample_z3()
+        self.current_point = self.starting_point
 
-    def next_sample_vanilla(self):
+        # set the function handles according to the options (direction set, shrinking)
+        #  Beware: the next_sample() function is being set here. This means
+        if direction_sampling == DirectionSampling.RDHR and shrinking == Shrinking.NO_SHRINKING:  # simple RDHR
+            self.next_sample = self._next_sample_vanilla
+        elif direction_sampling == DirectionSampling.RDHR and shrinking == Shrinking.SHRINKING:  # RDHR + Shrinking
+            self.next_sample = self._next_sample_rdhr_shrinking
+        elif direction_sampling == DirectionSampling.CDHR and shrinking == Shrinking.NO_SHRINKING:  # simple CDHR
+            self.next_sample = self._next_sample_cdhr
+        elif direction_sampling == DirectionSampling.CDHR and shrinking == Shrinking.SHRINKING:  # future? CDHR + Shr.
+            self.next_sample = self.next_sample_cdhr_shrinking  # Not implemented yet, will raise exception
+
+    def sampler(self, n, burn_in_period=100):
+        # should be the easiest way to get a sample- simple wrapper which needs little to none of the smaller methods
+
+        dim = len(self.constraint.var_name_list)
+
+        # start = time.perf_counter()
+
+        samples = np.ndarray((dim, n))
+        rejections = 0
+
+        for i in range(n):
+
+            for j in range(burn_in_period):
+                sample, rejections_this_sample = self.next_sample()
+                rejections += rejections_this_sample
+                # TODO does this number make sense to compare? Maybe average rej/sample?
+
+            sample, rejections_this_sample = self.next_sample()
+            rejections += rejections_this_sample
+
+            samples[:, i] = sample
+
+        # end = time.perf_counter()
+
+        # elapsed = end - start
+
+        return samples
+
+    # def next_sample(self):
+    #     if self.variant == HRVariant.VANILLA or self.variant == HRVariant.VANILLA_SMT:
+    #         return self.next_sample_vanilla()
+    #     elif self.variant == HRVariant.SHRINKING or self.variant == HRVariant.SHRINKING_SMT:
+    #         return self.next_sample_with_shrinking()
+    #     elif self.variant == HRVariant.CDHR:
+    #         return self._next_sample_cdhr()
+    #     else:
+    #         return self.next_sample_z3()
+
+    def _next_sample_vanilla(self):
+        # normal random directions hit-and-run (rdhr)
         b = self.current_point
 
         success = False
@@ -73,7 +126,7 @@ class HitAndRun:
             for i in range(len(inter_1)):
                 x_0 = inter_1[i]
                 x_1 = inter_2[i]
-                s_i = (x_1 - x_0)*rnd + x_0
+                s_i = (x_1 - x_0) * rnd + x_0
                 sample.append(s_i)
 
             success = self.constraint.evaluate(sample)
@@ -83,40 +136,7 @@ class HitAndRun:
 
         return sample, rejections
 
-    def next_sample_z3(self):
-        b = self.current_point
-        counter = 0
-
-        inter = []
-        while not inter:
-            a = self._random_direction()
-            inter = self._line_S_intersection(a, b, self.constraint)
-            counter = counter + 1
-
-        success = False
-        rejections = -1
-
-        while not success:
-            rnd = np.random.uniform()
-
-            inter_1 = inter[0]
-            inter_2 = inter[1]
-
-            sample = []
-            for i in range(len(inter_1)):
-                x_0 = inter_1[i]
-                x_1 = inter_2[i]
-                s_i = (x_1 - x_0)*rnd + x_0
-                sample.append(s_i)
-
-            success = self.constraint.evaluate(sample)
-            rejections += 1
-
-        self.current_point = sample
-
-        return sample, rejections
-
-    def next_sample_with_shrinking(self):
+    def _next_sample_rdhr_shrinking(self):
         b = self.current_point
 
         success = False
@@ -140,18 +160,17 @@ class HitAndRun:
 
             sample = []
             for i in range(len(inter_1)):
-                s_i = b[i] + rnd*a[i]
+                s_i = b[i] + rnd * a[i]
                 sample.append(s_i)
 
             success = self.constraint.evaluate(sample)
 
             if not success:
-                mid = r_min + 0.5*(r_max - r_min)
+                mid = r_min + 0.5 * (r_max - r_min)
                 if rnd > 0:
                     r_max = rnd
                 else:
                     r_min = rnd
-
 
             rejections += 1
 
@@ -160,7 +179,7 @@ class HitAndRun:
 
         return sample, rejections
 
-    def next_sample_cdhr(self):
+    def _next_sample_cdhr(self):
         b = self.current_point
 
         success = False
@@ -181,7 +200,7 @@ class HitAndRun:
             for i in range(len(inter_1)):
                 x_0 = inter_1[i]
                 x_1 = inter_2[i]
-                s_i = (x_1 - x_0)*rnd + x_0
+                s_i = (x_1 - x_0) * rnd + x_0
                 sample.append(s_i)
 
             success = self.constraint.evaluate(sample)
@@ -191,6 +210,8 @@ class HitAndRun:
 
         return sample, rejections
 
+    def next_sample_cdhr_shrinking(self):
+        assert(False), 'Not yet implemented.' # TODO check whether this is even theoretically sound
 
     def _line_box_intersection(self, a, b, box):
         potential_solutions = []
@@ -209,14 +230,13 @@ class HitAndRun:
             solution = []
             for i in range(len(a)):
                 box_i = box[i]
-                result = a[i]*ps + b[i]
+                result = a[i] * ps + b[i]
                 solution.append(result)
                 if result < box_i[0] or result > box_i[1]:
                     is_solution = False
                     break
             if is_solution:
                 solutions.append(solution)
-
 
         if len(solutions) >= 2:
             flag = True
@@ -242,9 +262,8 @@ class HitAndRun:
         solutions = []
         for ps in potential_solutions:
             is_solution = True
-            solution = a*ps + b
+            solution = a * ps + b
             solutions.append(solution)
-
 
         if len(solutions) >= 2:
             flag = True
@@ -253,107 +272,14 @@ class HitAndRun:
 
         return solutions, flag
 
-    # def contour(self):
-    #     self.contur_solver = self.constraint.contour()
-
-    # def _line_S_intersection(self, s0, s1, S):
-    #     solver = self.constraint.contour()
-    #     #solver.push()
-    #
-    #     for i in range(len(s0)):
-    #         y0 = s0[i]
-    #         y1 = s1[i]
-    #         y = Real(S.var_name_list[i])
-    #         if i == 0:
-    #             x0 = s0[i]
-    #             x1 = s1[i]
-    #             x = Real(S.var_name_list[i])
-    #         else:
-    #             a = (y1-y0)/(x1-x0)
-    #             b = y0 - a*x0
-    #             a_str = '%.3f' % a
-    #             b_str = '%.3f' % b
-    #             a_smt = RealVal(a_str)
-    #             b_smt = RealVal(b_str)
-    #             constraint = y == a_smt*x + b_smt
-    #             solver.add(constraint)
-    #
-    #     verdict = solver.check()
-    #     solutions = []
-    #     while verdict == sat:
-    #         model = solver.model()
-    #         for var in model:
-    #             c = Real(str(var)) != model[var]
-    #             solver.add(c)
-    #
-    #         solution = []
-    #         for var_name in self.constraint.var_name_list:
-    #             if isinstance(model[Real(var_name)], RatNumRef):
-    #
-    #                 val = float(model[Real(var_name)].as_fraction())
-    #             else:
-    #                 val = float(model[Real(var_name)].approx(self.precision).as_fraction())
-    #             solution.append(val)
-    #
-    #         solutions.append(solution)
-    #
-    #         verdict = solver.check()
-    #
-    #     solutions.sort(key=self._sort_first)
-    #     #solver.pop()
-    #
-    #     return solutions
-    #
-    # def _line_S_intersection_old(self, s0, s1, S):
-    #     solver = self.contur_solver
-    #     solver.push()
-    #
-    #     for i in range(len(s0)):
-    #         v0 = '%.3f' % s0[i]
-    #         v1 = '%.3f' % s1[i]
-    #         v0 = RealVal(v0)
-    #         v1 = RealVal(v1)
-    #         x = Real(S.var_name_list[i])
-    #         if i == 0:
-    #             x0 = v0
-    #             x1 = v1
-    #             tmp = RealVal(1)/(v1-v0)
-    #             t = (x - v0)*tmp
-    #         else:
-    #             tmp = RealVal(1)/(x1-x0)
-    #             y = x == ((v1 - v0)*(t - x0))*tmp + v0
-    #             solver.add(y)
-    #
-    #     verdict = solver.check()
-    #     solutions = []
-    #     while verdict == sat:
-    #         model = solver.model()
-    #         for var in model:
-    #             c = Real(str(var)) != model[var]
-    #             solver.add(c)
-    #
-    #         solution = []
-    #         for var_name in self.constraint.var_name_list:
-    #             val = float(model[Real(var_name)].approx(self.precision).as_fraction())
-    #             solution.append(val)
-    #
-    #         solutions.append(solution)
-    #
-    #         verdict = solver.check()
-    #
-    #     solutions.sort(key=self._sort_first)
-    #     solver.pop()
-    #
-    #     return solutions
-
     def _sort_first(self, l):
         return l[0]
 
-    def _starting_point(self):
-        if self.variant == HRVariant.SMT or self.variant == HRVariant.SHRINKING_SMT or self.variant == HRVariant.VANILLA_SMT or self.variant == HRVariant.CDHR:
-            return self._starting_point_smt()
-        else:
-            return self._starting_point_pso()
+    # def _starting_point(self):
+    #     if self.variant == HRVariant.SMT or self.variant == HRVariant.SHRINKING_SMT or self.variant == HRVariant.VANILLA_SMT or self.variant == HRVariant.CDHR:
+    #         return self._starting_point_smt()
+    #     else:
+    #         return self._starting_point_pso()
 
     def _starting_point_pso(self):
 
@@ -363,7 +289,7 @@ class HitAndRun:
             lb.append(b[0])
             ub.append(b[1])
 
-        #out, rob_opt = pso(self._evaluate, lb, ub, f_ieqcons=None, swarmsize=10, omega=0.5, phip=0.5,
+        # out, rob_opt = pso(self._evaluate, lb, ub, f_ieqcons=None, swarmsize=10, omega=0.5, phip=0.5,
         #                   phig=0.5, maxiter=10, minstep=1e-2, minfunc=0.1, debug=False)
 
         out, rob_opt, budget = pso(self._evaluate, lb, ub, f_ieqcons=None, swarmsize=10000, omega=0.5, phip=0.5,
@@ -376,7 +302,6 @@ class HitAndRun:
 
     def _evaluate(self, sample):
         return -self.constraint.q_evaluate(sample)
-
 
     def _starting_point_smt(self):
         solver = self.constraint.solver
@@ -392,7 +317,7 @@ class HitAndRun:
             value = model[var]
             num = float(value.numerator_as_long())
             den = float(value.denominator_as_long())
-            out_d[str(var)] = num/den
+            out_d[str(var)] = num / den
 
         out = []
         for var in self.constraint.var_name_list:
@@ -464,7 +389,7 @@ class HitAndRun:
         # Iterate until termination criterion met
         it = 1
         while it <= maxiter:
-            z, _ = self.next_sample()   # this will set also self.current_point = z
+            z, _ = self.next_sample()  # this will set also self.current_point = z
             print('Iteration ' + str(it))
             fz = obj(z)
 
@@ -490,16 +415,46 @@ class HitAndRun:
     def _random_direction_cdhr(self):
         n = self.constraint.dimensions
 
-        sign = np.random.rand() < 0.5 # random bit
+        sign = np.random.rand() < 0.5  # random bit
         direction = np.random.randint(low=0, high=n)
 
         out = np.zeros(n)
         out[direction] = 1
 
         if sign:
-            pass # plus
+            pass  # plus
         else:
-            out[direction] *= -1 # minus
+            out[direction] *= -1  # minus
 
         return out, direction
-        # here I return direction, seems like unnecessary extra steps to compute argmax in next_sample_cdhr
+        # here I return direction, seems like unnecessary extra steps to compute argmax in _next_sample_cdhr
+
+
+if __name__ == '__main__':
+    dim = 2
+    thickness = 0.1
+    var_names = ['x' + str(i) for i in range(dim)]
+
+    # Define the set of constraint TODO this constraint defining is still a little clunky... even for the n-sphere
+    c = Constraints(var_names)
+    square_list = ['(' + str(name) + '*' + str(name) + ')' for name in var_names]
+
+    constraint_str = '+'.join(square_list) + '< 1'
+    constraint_str2 = '+'.join(square_list) + '> (1-' + str(thickness) + ')' + '* (1-' + str(thickness) + ')'
+    c.add_constraint(constraint_str)
+    c.add_constraint(constraint_str2)
+
+    # Define the bounding hyperrectangle
+
+    # for name in var_names:
+    # locals()[name + '_bound'] =  [-1,1] # not necessary
+
+    bounds = list([[-1,1] for name in var_names])
+
+
+    hr = HitAndRun(constraint=c, bounding_box=bounds)
+
+    samples = hr.sampler(100)
+    # print(samples)
+    plt.scatter(samples[0,:], samples[1,:])
+    plt.show()

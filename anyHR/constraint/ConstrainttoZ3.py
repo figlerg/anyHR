@@ -1,7 +1,7 @@
 from z3 import *
-from parser.LRAParserVisitor import LRAParserVisitor
+from anyHR.constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
 
-class LRAtoZ3(LRAParserVisitor):
+class ConstrainttoZ3(ConstraintParserVisitor):
     '''
     This class translates the LRA to its Z3 representation
     '''

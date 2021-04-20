@@ -1,7 +1,7 @@
 from z3 import *
-from parser.LRAParserVisitor import LRAParserVisitor
+from anyHR.constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
 
-class LRAQuantitativeEvaluator(LRAParserVisitor):
+class ConstraintQuantitativeEvaluator(ConstraintParserVisitor):
     """
     This class evaluates to True or False a LRA expression by substituting variables
     with concrete numbers, given as input

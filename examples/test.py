@@ -5,7 +5,6 @@ import pickle
 import numpy as np
 import time
 
-from scipy.spatial.distance import norm
 # Import PySwarms
 
 
@@ -14,9 +13,8 @@ import time
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from constraint.constraints import Constraints
-from hyperrectangle_abstraction import HyperrectangleAbstraction
-from hit_and_run.hit_and_run import HitAndRun, HRVariant
+from anyHR.constraint.Constraint import Constraints
+from anyHR.hit_and_run.hit_and_run import HitAndRun, HRVariant
 
 
 def main_hit_and_run_2D_ball():
@@ -40,7 +38,7 @@ def main_hit_and_run_2D_ball():
     total_rejections = 0
     nb_samples = 100
     for i in range(nb_samples * 100):
-        sample, rejections = hr.next_sample_cdhr()
+        sample, rejections = hr._next_sample_cdhr()
         total_rejections = total_rejections + rejections
         a_s.append(sample)
     import random
@@ -80,7 +78,7 @@ def sample_n_sphere_hr(dim:int, n = 100, burn_in_period = 100, hr_mode:HRVariant
     bounds = list([[-1,1] for name in var_names])
 
 
-    hr = HitAndRun(S=c, B=bounds,variant=hr_mode)
+    hr = HitAndRun(constraint=c, bounding_box=bounds,variant=hr_mode)
 
     a_s = []
     r_s = [[0, 0]]

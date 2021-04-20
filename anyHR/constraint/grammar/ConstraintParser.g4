@@ -1,4 +1,4 @@
-parser grammar LRAParser ;
+parser grammar ConstraintParser ;
 
 options {
 	tokenVocab = ConstraintLexer ;
