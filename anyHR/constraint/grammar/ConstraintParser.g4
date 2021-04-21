@@ -21,9 +21,9 @@ expression
 	| literal                                                           #ExpressionConstant
 	| LPAREN expression RPAREN                                          #ExpressionParanthesis
 	| EULER EXP expression                                              #ExpressionExponential
+    | expression TIMES expression                                       #ExpressionMultiplication
 	| expression PLUS expression                                        #ExpressionAddition
 	| expression MINUS expression                                       #ExpressionSubtraction
-	| expression TIMES expression                                       #ExpressionMultiplication
     ;
 
 literal

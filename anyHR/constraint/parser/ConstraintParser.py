@@ -31,8 +31,8 @@ def serializedATN():
         buf.write("\1\2+\65\7\26\2\2,\65\5\6\4\2-.\7\b\2\2./\5\4\3\2/\60")
         buf.write("\7\t\2\2\60\65\3\2\2\2\61\62\7\3\2\2\62\63\7\4\2\2\63")
         buf.write("\65\5\4\3\6\64*\3\2\2\2\64,\3\2\2\2\64-\3\2\2\2\64\61")
-        buf.write("\3\2\2\2\65A\3\2\2\2\66\67\f\5\2\2\678\7\6\2\28@\5\4\3")
-        buf.write("\69:\f\4\2\2:;\7\5\2\2;@\5\4\3\5<=\f\3\2\2=>\7\7\2\2>")
+        buf.write("\3\2\2\2\65A\3\2\2\2\66\67\f\5\2\2\678\7\7\2\28@\5\4\3")
+        buf.write("\69:\f\4\2\2:;\7\6\2\2;@\5\4\3\5<=\f\3\2\2=>\7\5\2\2>")
         buf.write("@\5\4\3\4?\66\3\2\2\2?9\3\2\2\2?<\3\2\2\2@C\3\2\2\2A?")
         buf.write("\3\2\2\2AB\3\2\2\2B\5\3\2\2\2CA\3\2\2\2DI\7\24\2\2EI\7")
         buf.write("\25\2\2FG\7\5\2\2GI\5\6\4\2HD\3\2\2\2HE\3\2\2\2HF\3\2")
@@ -605,40 +605,40 @@ class ConstraintParser ( Parser ):
                     self._errHandler.sync(self)
                     la_ = self._interp.adaptivePredict(self._input,2,self._ctx)
                     if la_ == 1:
-                        localctx = ConstraintParser.ExpressionAdditionContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
+                        localctx = ConstraintParser.ExpressionMultiplicationContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expression)
                         self.state = 52
                         if not self.precpred(self._ctx, 3):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
                         self.state = 53
-                        self.match(ConstraintParser.PLUS)
+                        self.match(ConstraintParser.TIMES)
                         self.state = 54
                         self.expression(4)
                         pass
 
                     elif la_ == 2:
-                        localctx = ConstraintParser.ExpressionSubtractionContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
+                        localctx = ConstraintParser.ExpressionAdditionContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expression)
                         self.state = 55
                         if not self.precpred(self._ctx, 2):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
                         self.state = 56
-                        self.match(ConstraintParser.MINUS)
+                        self.match(ConstraintParser.PLUS)
                         self.state = 57
                         self.expression(3)
                         pass
 
                     elif la_ == 3:
-                        localctx = ConstraintParser.ExpressionMultiplicationContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
+                        localctx = ConstraintParser.ExpressionSubtractionContext(self, ConstraintParser.ExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_expression)
                         self.state = 58
                         if not self.precpred(self._ctx, 1):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
                         self.state = 59
-                        self.match(ConstraintParser.TIMES)
+                        self.match(ConstraintParser.MINUS)
                         self.state = 60
                         self.expression(2)
                         pass

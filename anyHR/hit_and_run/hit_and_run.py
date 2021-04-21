@@ -4,10 +4,11 @@ from functools import partial
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import norm
 from z3 import *
-from anyHR.pso.pso_ezio import *
-from anyHR.constraint.Constraint import Constraints
 
-import time
+from anyHR.constraint.Constraint import Constraints
+from anyHR.pso.pso_ezio import *
+import numpy as np
+
 
 def _obj_wrapper(func, args, kwargs, x):
     return func(x, *args, **kwargs)
@@ -63,8 +64,8 @@ class HitAndRun:
             self.next_sample = self._next_sample_rdhr_shrinking
         elif direction_sampling == DirectionSampling.CDHR and shrinking == Shrinking.NO_SHRINKING:  # simple CDHR
             self.next_sample = self._next_sample_cdhr
-        elif direction_sampling == DirectionSampling.CDHR and shrinking == Shrinking.SHRINKING:  # future? CDHR + Shr.
-            self.next_sample = self.next_sample_cdhr_shrinking  # Not implemented yet, will raise exception
+        elif direction_sampling == DirectionSampling.CDHR and shrinking == Shrinking.SHRINKING:
+            self.next_sample = self.next_sample_cdhr_shrinking
 
     def sampler(self, n, burn_in_period=100):
         # should be the easiest way to get a sample- simple wrapper which needs little to none of the smaller methods
@@ -113,14 +114,14 @@ class HitAndRun:
             a = self._random_direction()
             inter, success = self._line_box_intersection(a, b, self.bounding_box)
 
+        inter_1 = inter[0]
+        inter_2 = inter[1]
+
         success = False
         rejections = -1
 
         while not success:
             rnd = np.random.uniform()
-
-            inter_1 = inter[0]
-            inter_2 = inter[1]
 
             sample = []
             for i in range(len(inter_1)):
@@ -166,7 +167,6 @@ class HitAndRun:
             success = self.constraint.evaluate(sample)
 
             if not success:
-                mid = r_min + 0.5 * (r_max - r_min)
                 if rnd > 0:
                     r_max = rnd
                 else:
@@ -187,14 +187,16 @@ class HitAndRun:
             a, direction_int = self._random_direction_cdhr()
             inter, success = self._line_box_intersection_cdhr(a, direction_int, b, self.bounding_box)
 
+        inter_1 = inter[0]
+        inter_2 = inter[1]
+
         success = False
         rejections = -1
 
         while not success:
             rnd = np.random.uniform()
 
-            inter_1 = inter[0]
-            inter_2 = inter[1]
+
 
             sample = []
             for i in range(len(inter_1)):
@@ -211,7 +213,50 @@ class HitAndRun:
         return sample, rejections
 
     def next_sample_cdhr_shrinking(self):
-        assert(False), 'Not yet implemented.' # TODO check whether this is even theoretically sound
+        # assert (False), 'Not yet implemented.'  # TODO check whether this is even theoretically sound
+        b = self.current_point
+
+        success = False
+        while not success: # This should only do one iteration?
+            a, direction_int = self._random_direction_cdhr()
+            inter, success = self._line_box_intersection_cdhr(a, direction_int, b, self.bounding_box)
+
+        inter_1 = inter[0]
+        inter_2 = inter[1]
+
+        # on the numer line, minus b[dir_int] describes the translation such that the current point now has value zero
+        #  in the axis parallel to the chosen line
+        r_min = inter_1[direction_int] - b[direction_int]
+        r_max = inter_2[direction_int] - b[direction_int]
+
+        success = False
+        rejections = -1
+
+
+        while not success:
+            rnd = np.random.uniform(r_min, r_max)
+
+            # sample = []
+            # for i in range(len(inter_1)):
+            #     s_i = b[i] + rnd * a[i]
+            #     sample.append(s_i)
+            sample = b.copy()
+            sample[direction_int] += rnd # only one component changes in cdhr and vector is unit vector. simply add
+
+            success = self.constraint.evaluate(sample)
+
+            if not success:
+                if rnd > 0:
+                    r_max = rnd
+                else:
+                    r_min = rnd
+
+            rejections += 1
+
+            # FELIX: fixed bug in next line, 30.03.
+        self.current_point = sample
+
+        return sample, rejections
 
     def _line_box_intersection(self, a, b, box):
         potential_solutions = []
@@ -431,13 +476,15 @@ class HitAndRun:
 
 
 if __name__ == '__main__':
+    np.random.seed(2)
     dim = 2
     thickness = 0.1
     var_names = ['x' + str(i) for i in range(dim)]
 
     # Define the set of constraint TODO this constraint defining is still a little clunky... even for the n-sphere
     c = Constraints(var_names)
-    square_list = ['(' + str(name) + '*' + str(name) + ')' for name in var_names]
+    # square_list = ['(' + str(name) + '*' + str(name) + ')' for name in var_names]
+    square_list = [str(name) + '*' + str(name) for name in var_names] # operator priority is correct now
 
     constraint_str = '+'.join(square_list) + '< 1'
     constraint_str2 = '+'.join(square_list) + '> (1-' + str(thickness) + ')' + '* (1-' + str(thickness) + ')'
@@ -449,12 +496,25 @@ if __name__ == '__main__':
     # for name in var_names:
     # locals()[name + '_bound'] =  [-1,1] # not necessary
 
-    bounds = list([[-1,1] for name in var_names])
+    bounds = list([[-1, 1] for name in var_names])
 
+    hr = HitAndRun(constraint=c, bounding_box=bounds, direction_sampling=DirectionSampling.CDHR,
+                   shrinking=Shrinking.SHRINKING, init_point=InitPoint.SMT)
 
-    hr = HitAndRun(constraint=c, bounding_box=bounds)
-
-    samples = hr.sampler(100)
+    samples = hr.sampler(100,burn_in_period=200)
     # print(samples)
-    plt.scatter(samples[0,:], samples[1,:])
+
+    from matplotlib import patches
+    circ1 = patches.Circle([0,0], 1, fill=False)
+    circ2 = patches.Circle([0,0], 1-thickness, fill=False)
+
+    fig, ax = plt.subplots(1,subplot_kw={'adjustable' : 'box', 'aspect' : 'equal'})
+
+    ax.scatter(samples[0, :], samples[1, :], s = 3)
+    ax.add_patch(circ1)
+    ax.add_patch(circ2)
     plt.show()
+
+
+
+
