@@ -47,11 +47,13 @@ class HitAndRun:
         self.direction_sampling = direction_sampling
         self.init_point = init_point
 
+        assert(self.init_point == InitPoint.PSO or self.constraint.is_polynomial), \
+            "You cannot use non-polynomial constraints with SMT"
+
         # set the starting point- either with optimizer or with smt solver
         if init_point == InitPoint.PSO:
             self.starting_point = self._starting_point_pso()
         else:  # using z3/SMT
-            # TODO assert that we have polynomial constraints if we use Z3
             self.starting_point = self._starting_point_smt()
 
         self.current_point = self.starting_point

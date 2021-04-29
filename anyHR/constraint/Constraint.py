@@ -21,6 +21,7 @@ class Constraints:
         self.c_formulas = []                    # list of constraint Z3 formulas
         self.c_contour_formulas = []            # list of contour constraint Z3 formulas
         self.dimensions = len(var_name_list)    # nb of dimensions
+        self.is_polynomial = True
 
     def add_constraint(self, constraint: str):
         # parse the constraint
@@ -40,19 +41,21 @@ class Constraints:
         qevaluator = ConstraintQuantitativeEvaluator(ctx, self.var_name_list)
         self.c_qevaluators.append(qevaluator)
 
-        # Generate a Z3 formula for the specific constraint
-        # and add it to the list
-        translator = ConstrainttoZ3(ctx)
-        z3_formula = translator.translate()
-        self.c_formulas.append(z3_formula)
-        self.solver.add(z3_formula)
+        try:
+            # Generate a Z3 formula for the specific constraint
+            # and add it to the list
+            translator = ConstrainttoZ3(ctx)
+            z3_formula = translator.translate()
+            self.c_formulas.append(z3_formula)
+            self.solver.add(z3_formula)
 
-        # Generate a contour Z3 formula for the specific constraint
-        # and add it to the list
-        translator = ConstrainttoZ3Equality(ctx)
-        z3_formula = translator.translate()
-        self.c_contour_formulas.append(z3_formula)
-
+            # Generate a contour Z3 formula for the specific constraint
+            # and add it to the list
+            translator = ConstrainttoZ3Equality(ctx)
+            z3_formula = translator.translate()
+            self.c_contour_formulas.append(z3_formula)
+        except Exception:
+            self.is_polynomial = False
 
     def evaluate(self, sample: list):
         """

@@ -50,8 +50,7 @@ class ConstrainttoZ3Equality(ConstraintParserVisitor):
         return Or(exp_low == exp, exp == exp_up)
 
     def visitExpressionExponential(self, ctx):
-        exp = self.visit(ctx.expression())
-        return exp
+        raise Exception('Exponents cannot be translated to Z3')
 
     def visitExpressionAddition(self, ctx):
         exp_1 = self.visit(ctx.expression(0))
