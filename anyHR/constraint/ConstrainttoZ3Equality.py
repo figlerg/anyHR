@@ -17,68 +17,68 @@ class ConstrainttoZ3Equality(NodeVisitor):
         """Returns the Z3 translation of the NLRA constraint"""
         return self.visit(self.node, None)
 
-    def visitLEQ(self, node: LEQ, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitLEQ(self, node: LEQ, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitGEQ(self, node: GEQ, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitGEQ(self, node: GEQ, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitGreater(self, node: Greater, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitGreater(self, node: Greater, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitLess(self, node: Less, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitLess(self, node: Less, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitEQ(self, node: EQ, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitEQ(self, node: EQ, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitNEQ(self, node: NEQ, args) -> bool:
-        exp_1 = self.visit(node.children[0], args)
-        exp_2 = self.visit(node.children[1], args)
+    def visitNEQ(self, node: NEQ, args) -> ExprRef:
+        exp_1:ExprRef = self.visit(node.children[0], args)
+        exp_2:ExprRef = self.visit(node.children[1], args)
         return exp_1 == exp_2
 
-    def visitIn(self, node: In, args) -> bool:
+    def visitIn(self, node: In, args) -> ExprRef:
         exp = self.visit(node.children[0], args)
         exp_low = self.visit(node.children[1], args)
         exp_up = self.visit(node.children[2], args)
         return Or(exp_low == exp, exp == exp_up)
 
-    def visitVariable(self, node: Variable, args) -> float:
+    def visitVariable(self, node: Variable, args) -> ExprRef:
         var_name = node.name
         var = Real(var_name)
 
         return var
 
-    def visitConstant(self, node: Constant, args) -> float:
+    def visitConstant(self, node: Constant, args) -> ExprRef:
         constant = RealVal(node.value)
         return constant
 
-    def visitAddition(self, node: Addition, args) -> float:
+    def visitAddition(self, node: Addition, args) -> ExprRef:
         exp_1 = self.visit(node.children[0], args)
         exp_2 = self.visit(node.children[1], args)
         return exp_1 + exp_2
 
-    def visitExpressionSubtraction(self, node: Subtraction, args) -> float:
+    def visitSubtraction(self, node: Subtraction, args) -> ExprRef:
         exp_1 = self.visit(node.children[0], args)
         exp_2 = self.visit(node.children[1], args)
         return exp_1 - exp_2
 
-    def visitExpressionMultiplication(self, node: Multiplication, args) -> float:
+    def visitMultiplication(self, node: Multiplication, args) -> ExprRef:
         exp_1 = self.visit(node.children[0], args)
         exp_2 = self.visit(node.children[1], args)
         return exp_1 * exp_2
 
-    def visitExpressionExponential(self, node: Exponential, args):
+    def visitExponential(self, node: Exponential, args):
         exp = self.visit(node.children[0], args)
         raise Exception('Exponentials cannot be translated to Z3')
 

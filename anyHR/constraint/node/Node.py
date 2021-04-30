@@ -10,7 +10,7 @@ class LEQ(Node):
         self.children.append(op2)
 
     def __str__(self):
-        return '(' + str(self.children[0]) + '<=...'
+        return '(' + str(self.children[0]) + ' <= ' + str(self.children[1]) + ')'
 
 
 class GEQ(Node):
@@ -18,20 +18,24 @@ class GEQ(Node):
         Node.__init__(self)
         self.children.append(op1)
         self.children.append(op2)
-
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' >= ' + str(self.children[1]) + ')'
 
 class Less(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
         self.children.append(op1)
         self.children.append(op2)
-
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' < ' + str(self.children[1]) + ')'
 
 class Greater(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
         self.children.append(op1)
         self.children.append(op2)
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' > ' + str(self.children[1]) + ')'
 
 
 class EQ(Node):
@@ -40,12 +44,18 @@ class EQ(Node):
         self.children.append(op1)
         self.children.append(op2)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' = ' + str(self.children[1]) + ')'
+
 
 class NEQ(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
         self.children.append(op1)
         self.children.append(op2)
+
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' != ' + str(self.children[1]) + ')'
 
 
 class In(Node):
@@ -55,17 +65,28 @@ class In(Node):
         self.children.append(op_low)
         self.children.append(op_up)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) +  ')' + ' IN ' + '[ ' + str(self.children[1]) + ' , ' + str(self.children[2]) + ' ]'
+        # return '(' + str(self.children[1]) + ' <= ' + str(self.children[0]) + ')' ' AND ' + \
+        #        '(' + str(self.children[0]) + ' <= ' + str(self.children[2]) + ')'
+
 
 class Variable(Node):
     def __init__(self, name):
         Node.__init__(self)
         self.name = name
 
+    def __str__(self):
+        return self.name
+
 
 class Constant(Node):
     def __init__(self, value):
         Node.__init__(self)
         self.value = value
+
+    def __str__(self):
+        return str(self.value)
 
 
 class Addition(Node):
@@ -74,6 +95,9 @@ class Addition(Node):
         self.children.append(op1)
         self.children.append(op2)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' + ' + str(self.children[1]) + ')'
+
 
 class Subtraction(Node):
     def __init__(self, op1, op2):
@@ -81,6 +105,8 @@ class Subtraction(Node):
         self.children.append(op1)
         self.children.append(op2)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' - ' + str(self.children[1]) + ')'
 
 class Multiplication(Node):
     def __init__(self, op1, op2):
@@ -88,11 +114,17 @@ class Multiplication(Node):
         self.children.append(op1)
         self.children.append(op2)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) + ' * ' + str(self.children[1]) + ')'
+
 
 class Exponential(Node):
     def __init__(self, op1):
         Node.__init__(self)
         self.children.append(op1)
+
+    def __str__(self):
+        return '(' + 'EXP(' +  str(self.children[1]) + ') ' + ')'
 
 
 # LRA_LEQ DONE

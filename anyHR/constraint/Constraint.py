@@ -2,12 +2,14 @@ from z3 import *
 from antlr4.InputStream import InputStream
 from antlr4.CommonTokenStream import CommonTokenStream
 
-from anyHR.constraint.ConstraintQuantitativeEvaluator import ConstraintQuantitativeEvaluator
-from anyHR.constraint.ConstrainttoZ3Equality import ConstrainttoZ3Equality
-from anyHR.constraint.parser.ConstraintLexer import ConstraintLexer
-from anyHR.constraint.parser.ConstraintParser import ConstraintParser
-from anyHR.constraint.ConstrainttoZ3 import ConstrainttoZ3
-from anyHR.constraint.ConstraintEvaluator import ConstraintEvaluator
+from constraint.ConstraintQuantitativeEvaluator import ConstraintQuantitativeEvaluator
+from constraint.ConstrainttoZ3Equality import ConstrainttoZ3Equality
+from constraint.parser.ConstraintLexer import ConstraintLexer
+from constraint.parser.ConstraintParser import ConstraintParser
+from constraint.ConstrainttoZ3 import ConstrainttoZ3
+from constraint.ConstraintEvaluator import ConstraintEvaluator
+
+from constraint.Constraint2Tree import Constraint2Tree
 
 class Constraints:
     """
@@ -31,31 +33,50 @@ class Constraints:
         parser = ConstraintParser(stream)
         ctx = parser.lra()
 
+        # Create a constraint tree object from ANTLR4's parse tree
+        tree_parser = Constraint2Tree(ctx)
+
+        tree = tree_parser.translate()
+
         # Generate an evaluator for the specific constraint
         # and add it to the list
-        evaluator = ConstraintEvaluator(ctx, self.var_name_list)
+        evaluator = ConstraintEvaluator(tree, self.var_name_list)
         self.c_evaluators.append(evaluator)
 
         # Generate a quantitative evaluator for the specific constraint
         # and add it to the list
-        qevaluator = ConstraintQuantitativeEvaluator(ctx, self.var_name_list)
+        qevaluator = ConstraintQuantitativeEvaluator(tree, self.var_name_list)
         self.c_qevaluators.append(qevaluator)
 
         try:
             # Generate a Z3 formula for the specific constraint
             # and add it to the list
-            translator = ConstrainttoZ3(ctx)
+            translator = ConstrainttoZ3(tree)
             z3_formula = translator.translate()
             self.c_formulas.append(z3_formula)
             self.solver.add(z3_formula)
 
             # Generate a contour Z3 formula for the specific constraint
             # and add it to the list
-            translator = ConstrainttoZ3Equality(ctx)
+            translator = ConstrainttoZ3Equality(tree)
             z3_formula = translator.translate()
             self.c_contour_formulas.append(z3_formula)
-        except Exception:
+        except NotImplementedError:
             self.is_polynomial = False
+
+        # # TEST WITHOUT TRY
+        # # Generate a Z3 formula for the specific constraint
+        # # and add it to the list
+        # translator = ConstrainttoZ3(tree)
+        # z3_formula = translator.translate()
+        # self.c_formulas.append(z3_formula)
+        # self.solver.add(z3_formula)
+        #
+        # # Generate a contour Z3 formula for the specific constraint
+        # # and add it to the list
+        # translator = ConstrainttoZ3Equality(tree)
+        # z3_formula = translator.translate()
+        # self.c_contour_formulas.append(z3_formula)
 
     def evaluate(self, sample: list):
         """

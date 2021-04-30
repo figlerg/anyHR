@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import norm
 from z3 import *
 
-from anyHR.constraint.Constraint import Constraints
-from anyHR.pso.pso_ezio import *
+from constraint.Constraint import Constraints
+from pso.pso_ezio import *
 import numpy as np
 
 

@@ -8,16 +8,9 @@ class Constraint2Tree(ConstraintParserVisitor):
     Return a tree as node with translate()
     """
 
-    def __init__(self, ctx, var_name_list: list):
+    def __init__(self, ctx):
         self.ctx = ctx
-        self.var_name_idx_dict = dict()
-        self.sample = []
 
-        # Create a dictionary mapping var names to array indices
-        i = 0
-        for var_name in var_name_list:
-            self.var_name_idx_dict[var_name] = i
-            i += 1
 
     # api
     def translate(self):
@@ -91,5 +84,5 @@ class Constraint2Tree(ConstraintParserVisitor):
         exp = self.visit(ctx.expression())
         return Exponential(exp)
 
-    # def visitExpressionParanthesis(self, ctx):
-    #     return self.visit(ctx.expression())
+    def visitExpressionParanthesis(self, ctx):
+        return self.visit(ctx.expression())

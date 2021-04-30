@@ -8,7 +8,7 @@ class ConstraintQuantitativeEvaluator(NodeVisitor):
     This class evaluates a quantitative measure of how much we are sat/nonsat
     """
 
-    def __init__(self, var_name_list: list, node: Node):
+    def __init__(self, node: Node, var_name_list: list):
         self.node = node
         self.var_name_idx_dict = dict()
         self.sample = []
@@ -75,16 +75,16 @@ class ConstraintQuantitativeEvaluator(NodeVisitor):
         exp_2 = self.visit(node.children[1], args)
         return exp_1 + exp_2
 
-    def visitExpressionSubtraction(self, node: Subtraction, args) -> float:
+    def visitSubtraction(self, node: Subtraction, args) -> float:
         exp_1 = self.visit(node.children[0], args)
         exp_2 = self.visit(node.children[1], args)
         return exp_1 - exp_2
 
-    def visitExpressionMultiplication(self, node: Multiplication, args) -> float:
+    def visitMultiplication(self, node: Multiplication, args) -> float:
         exp_1 = self.visit(node.children[0], args)
         exp_2 = self.visit(node.children[1], args)
         return exp_1 * exp_2
 
-    def visitExpressionExponential(self, node: Exponential, args) -> float:
+    def visitExponential(self, node: Exponential, args) -> float:
         exp = self.visit(node.children[0], args)
         return math.exp(exp)
