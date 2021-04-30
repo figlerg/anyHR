@@ -1,10 +1,11 @@
 from constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
-from node.Node import *
+from constraint.node.Node import *
 
 
 class Constraint2Tree(ConstraintParserVisitor):
     """
-    Use the ANTLR Parser to create our own tree
+    Use the ANTLR Parser to create our own tree (Node structure in Node.py).
+    Return a tree as node with translate()
     """
 
     def __init__(self, ctx, var_name_list: list):
@@ -18,14 +19,9 @@ class Constraint2Tree(ConstraintParserVisitor):
             self.var_name_idx_dict[var_name] = i
             i += 1
 
-    # def evaluate(self, sample: list) -> float:
-    #     self.sample = sample
-    #     out = self.visit(self.ctx)
-    #     return out
-
-    def return_tree(self):
+    # api
+    def translate(self):
         return self.visit(self.ctx)
-
 
     def visitLRA_LEQ(self, ctx) -> Node:
         exp_1 = self.visit(ctx.expression(0))

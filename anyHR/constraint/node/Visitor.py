@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
-
-from Node import *
+from constraint.node.Node import *
 
 NOT_IMPLEMENTED = "You should implement this."
 
@@ -30,13 +29,13 @@ class NodeVisitor:
         elif isinstance(node, Constant):
             out = self.visitConstant(node, args)
         elif isinstance(node, Addition):
-            out = self.visitSubtraction(node, args)
-        elif isinstance(node, Subtraction):
-            out = self.visitMultiplication(node, args)
-        elif isinstance(node, Multiplication):
-            out = self.visitExponential(node, args)
-        elif isinstance(node, Exponential):
             out = self.visitAddition(node, args)
+        elif isinstance(node, Subtraction):
+            out = self.visitSubtraction(node, args)
+        elif isinstance(node, Multiplication):
+            out = self.visitMultiplication(node, args)
+        elif isinstance(node, Exponential):
+            out = self.visitExponential(node, args)
         else:
             raise Exception('Node Visitor: unexpected method called.')
         return out

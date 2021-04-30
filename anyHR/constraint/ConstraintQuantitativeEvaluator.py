@@ -1,14 +1,15 @@
-from z3 import *
-from anyHR.constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
+import math
 
-class ConstraintQuantitativeEvaluator(ConstraintParserVisitor):
+from constraint.node.Node import *
+from constraint.node.Visitor import NodeVisitor
+
+class ConstraintQuantitativeEvaluator(NodeVisitor):
     """
-    This class evaluates to True or False a LRA expression by substituting variables
-    with concrete numbers, given as input
+    This class evaluates a quantitative measure of how much we are sat/nonsat
     """
 
-    def __init__(self, ctx, var_name_list: list):
-        self.ctx = ctx
+    def __init__(self, var_name_list: list, node: Node):
+        self.node = node
         self.var_name_idx_dict = dict()
         self.sample = []
 
@@ -20,73 +21,70 @@ class ConstraintQuantitativeEvaluator(ConstraintParserVisitor):
 
     def evaluate(self, sample: list) -> float:
         self.sample = sample
-        out = self.visit(self.ctx)
+        out = self.visit(self.node, None)
         return out
 
-    def visitLRA_Eq(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
+    def visitLEQ(self, node: LEQ, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_2 - exp_1
+
+    def visitGEQ(self, node: GEQ, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_1 - exp_2
+
+    def visitGreater(self, node: Greater, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_1 - exp_2
+
+    def visitLess(self, node: Less, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_2 - exp_1
+
+    def visitEQ(self, node: EQ, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
         return - abs(exp_1 - exp_2)
 
-    def visitLRA_Neq(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
+    def visitNEQ(self, node: NEQ, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
         return abs(exp_1 - exp_2)
 
-    def visitLRA_GEQ(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_1 - exp_2
-
-    def visitLRA_LEQ(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_2 - exp_1
-
-    def visitLRA_Greater(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_1 - exp_2
-
-    def visitLRA_Less(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_2 - exp_1
-
-    def visitExpressionAddition(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_1 + exp_2
-
-    def visitLRA_In(self, ctx):
-        exp = self.visit(ctx.expression(0))
-        exp_low = self.visit(ctx.expression(1))
-        exp_up = self.visit(ctx.expression(2))
+    def visitIn(self, node: In, args) -> float:
+        exp = self.visit(node.children[0], args)
+        exp_low = self.visit(node.children[1], args)
+        exp_up = self.visit(node.children[2], args)
         return min(exp - exp_low, exp_up - exp)
 
-    def visitExpressionSubtraction(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_1 - exp_2
-
-    def visitExpressionMultiplication(self, ctx) -> float:
-        exp_1 = self.visit(ctx.expression(0))
-        exp_2 = self.visit(ctx.expression(1))
-        return exp_1 * exp_2
-
-    def visitExpressionExponential(self, ctx) -> float:
-        exp = self.visit(ctx.expression())
-        return math.exp(exp)
-
-    def visitExpressionVariable(self, ctx) -> float:
-        var_name = ctx.Identifier().getText()
+    def visitVariable(self, node: Variable, args) -> float:
+        var_name = node.name
         idx = self.var_name_idx_dict[var_name]
         var = self.sample[idx]
         return var
 
-    def visitExpressionConstant(self, ctx) -> float:
-        constant = float(ctx.literal().getText())
+    def visitConstant(self, node: Constant, args) -> float:
+        constant = node.value
         return constant
 
-    def visitExpressionParanthesis(self, ctx):
-        return self.visit(ctx.expression())
+    def visitAddition(self, node: Addition, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_1 + exp_2
+
+    def visitExpressionSubtraction(self, node: Subtraction, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_1 - exp_2
+
+    def visitExpressionMultiplication(self, node: Multiplication, args) -> float:
+        exp_1 = self.visit(node.children[0], args)
+        exp_2 = self.visit(node.children[1], args)
+        return exp_1 * exp_2
+
+    def visitExpressionExponential(self, node: Exponential, args) -> float:
+        exp = self.visit(node.children[0], args)
+        return math.exp(exp)

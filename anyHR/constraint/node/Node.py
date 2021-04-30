@@ -9,6 +9,9 @@ class LEQ(Node):
         self.children.append(op1)
         self.children.append(op2)
 
+    def __str__(self):
+        return '(' + str(self.children[0]) + '<=...'
+
 
 class GEQ(Node):
     def __init__(self, op1, op2):
