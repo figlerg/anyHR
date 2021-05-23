@@ -14,13 +14,13 @@ def _obj_wrapper(func, args, kwargs, x):
     return func(x, *args, **kwargs)
 
 
-class HRVariant(Enum):
-    VANILLA = 0,
-    SHRINKING = 1,
-    SMT = 2,
-    VANILLA_SMT = 3,
-    SHRINKING_SMT = 4
-    CDHR = 5
+# class HRVariant(Enum):
+#     VANILLA = 0,
+#     SHRINKING = 1,
+#     SMT = 2,
+#     VANILLA_SMT = 3,
+#     SHRINKING_SMT = 4
+#     CDHR = 5
 
 
 class DirectionSampling(Enum):
@@ -503,19 +503,28 @@ if __name__ == '__main__':
     hr = HitAndRun(constraint=c, bounding_box=bounds, direction_sampling=DirectionSampling.CDHR,
                    shrinking=Shrinking.SHRINKING, init_point=InitPoint.SMT)
 
-    samples = hr.sampler(100,burn_in_period=200)
+
+    import cProfile
+
+    cProfile.run('samples = hr.sampler(100,burn_in_period=200)','restats')
     # print(samples)
+    import pstats
+    from pstats import SortKey
+    p = pstats.Stats('restats')
+    # p.strip_dirs().sort_stats(-1).print_stats()
 
-    from matplotlib import patches
-    circ1 = patches.Circle([0,0], 1, fill=False)
-    circ2 = patches.Circle([0,0], 1-thickness, fill=False)
+    p.sort_stats(SortKey.TIME).print_stats()
 
-    fig, ax = plt.subplots(1,subplot_kw={'adjustable' : 'box', 'aspect' : 'equal'})
-
-    ax.scatter(samples[0, :], samples[1, :], s = 3)
-    ax.add_patch(circ1)
-    ax.add_patch(circ2)
-    plt.show()
+    # from matplotlib import patches
+    # circ1 = patches.Circle([0,0], 1, fill=False)
+    # circ2 = patches.Circle([0,0], 1-thickness, fill=False)
+    #
+    # fig, ax = plt.subplots(1,subplot_kw={'adjustable' : 'box', 'aspect' : 'equal'})
+    #
+    # ax.scatter(samples[0, :], samples[1, :], s = 3)
+    # ax.add_patch(circ1)
+    # ax.add_patch(circ2)
+    # plt.show()
 
 
 

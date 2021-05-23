@@ -10,6 +10,7 @@ from constraint.ConstrainttoZ3 import ConstrainttoZ3
 from constraint.ConstraintEvaluator import ConstraintEvaluator
 
 from constraint.Constraint2Tree import Constraint2Tree
+from constraint.node.Node import Node
 
 class Constraints:
     """
@@ -25,18 +26,24 @@ class Constraints:
         self.dimensions = len(var_name_list)    # nb of dimensions
         self.is_polynomial = True
 
-    def add_constraint(self, constraint: str):
-        # parse the constraint
-        input_stream = InputStream(constraint)
-        lexer = ConstraintLexer(input_stream)
-        stream = CommonTokenStream(lexer)
-        parser = ConstraintParser(stream)
-        ctx = parser.lra()
+    def add_constraint(self, constraint):
+        if isinstance(constraint, str):
+            # parse the constraint
+            input_stream = InputStream(constraint)
+            lexer = ConstraintLexer(input_stream)
+            stream = CommonTokenStream(lexer)
+            parser = ConstraintParser(stream)
+            ctx = parser.lra()
 
-        # Create a constraint tree object from ANTLR4's parse tree
-        tree_parser = Constraint2Tree(ctx)
+            # Create a constraint tree object from ANTLR4's parse tree
+            tree_parser = Constraint2Tree(ctx)
 
-        tree = tree_parser.translate()
+            tree = tree_parser.translate()
+
+        # in case the constraint is given as a node already
+        if isinstance(constraint,Node):
+
+            tree = constraint
 
         # Generate an evaluator for the specific constraint
         # and add it to the list

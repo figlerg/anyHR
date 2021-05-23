@@ -1,6 +1,10 @@
+# from constraint.node.SubstitutorVisitor import SubstitutorVisitor
+
+
 class Node(object):
     def __init__(self):
         self.children = list()
+
 
 
 class LEQ(Node):
@@ -67,8 +71,7 @@ class In(Node):
 
     def __str__(self):
         return '(' + str(self.children[0]) +  ')' + ' IN ' + '[ ' + str(self.children[1]) + ' , ' + str(self.children[2]) + ' ]'
-        # return '(' + str(self.children[1]) + ' <= ' + str(self.children[0]) + ')' ' AND ' + \
-        #        '(' + str(self.children[0]) + ' <= ' + str(self.children[2]) + ')'
+
 
 
 class Variable(Node):
@@ -126,18 +129,3 @@ class Exponential(Node):
     def __str__(self):
         return '(' + 'EXP(' +  str(self.children[1]) + ') ' + ')'
 
-
-# LRA_LEQ DONE
-# LRA_GEQ DONE
-# LRA_Less -
-# LRA_Greater -
-# LRA_Eq -
-# LRA_Neq -
-# LRA_In -
-# ExpressionVariable DONE
-# ExpressionConstant DONE
-# ExpressionParanthesis NOT NEEDED?
-# ExpressionExponential
-# ExpressionMultiplication
-# ExpressionAddition DONE
-# ExpressionSubtraction
