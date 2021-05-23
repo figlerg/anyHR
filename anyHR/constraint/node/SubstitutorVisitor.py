@@ -20,7 +20,7 @@ class SubstitutorVisitor(NodeVisitor):
         # this changes the node itself, no return value
 
     # this is the only interesting part:
-    def visitVariable(self, node: Variable, args) -> float:
+    def visitVariable(self, node: Variable, args):
         for var in self.pairs_dict.keys():
             if node.name == var:
                 # Transforms the variable node to a constant node
@@ -29,51 +29,51 @@ class SubstitutorVisitor(NodeVisitor):
                 # no need to look further
                 return
 
-    def visitConstant(self, node: Constant, args) -> float:
+    def visitConstant(self, node: Constant, args):
         pass
 
     # the rest just visits all children
-    def visitLEQ(self, node: LEQ, args) -> bool:
+    def visitLEQ(self, node: LEQ, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitGEQ(self, node: GEQ, args) -> bool:
+    def visitGEQ(self, node: GEQ, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitGreater(self, node: Greater, args) -> bool:
+    def visitGreater(self, node: Greater, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitLess(self, node: Less, args) -> bool:
+    def visitLess(self, node: Less, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitEQ(self, node: EQ, args) -> bool:
+    def visitEQ(self, node: EQ, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitNEQ(self, node: NEQ, args) -> bool:
+    def visitNEQ(self, node: NEQ, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitIn(self, node: In, args) -> bool:
+    def visitIn(self, node: In, args):
         for child in node.children:
             self.visit(child,None)
 
 
-    def visitAddition(self, node: Addition, args) -> float:
+    def visitAddition(self, node: Addition, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitSubtraction(self, node: Subtraction, args) -> float:
+    def visitSubtraction(self, node: Subtraction, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitMultiplication(self, node: Multiplication, args) -> float:
+    def visitMultiplication(self, node: Multiplication, args):
         for child in node.children:
             self.visit(child,None)
 
-    def visitExponential(self, node: Exponential, args) -> float:
+    def visitExponential(self, node: Exponential, args):
         for child in node.children:
             self.visit(child,None)

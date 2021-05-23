@@ -19,12 +19,16 @@ class Constraints:
     def __init__(self, var_name_list: list):
         self.var_name_list = var_name_list      # list of variables used in the set of constraint
         self.solver = Solver()                  # instance of the Z3 solver
+        self.constraint_objects = []            # list of constraint objects for string output
         self.c_evaluators = []                  # list of constraint evaluators
         self.c_qevaluators = []                 # list of constraint quantitative evaluators
         self.c_formulas = []                    # list of constraint Z3 formulas
         self.c_contour_formulas = []            # list of contour constraint Z3 formulas
         self.dimensions = len(var_name_list)    # nb of dimensions
         self.is_polynomial = True
+
+    def __str__(self):
+        return ','.join(list([str(constraint) for constraint in self.constraint_objects]))
 
     def add_constraint(self, constraint):
         if isinstance(constraint, str):
@@ -40,15 +44,17 @@ class Constraints:
 
             tree = tree_parser.translate()
 
-        # in case the constraint is given as a node already
-        if isinstance(constraint,Node):
-
+        # in case the constraint is given as a node already. Beware: wrong input will not be caught
+        else:
             tree = constraint
+
+        self.constraint_objects.append(tree)
 
         # Generate an evaluator for the specific constraint
         # and add it to the list
         evaluator = ConstraintEvaluator(tree, self.var_name_list)
         self.c_evaluators.append(evaluator)
+
 
         # Generate a quantitative evaluator for the specific constraint
         # and add it to the list

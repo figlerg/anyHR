@@ -1,15 +1,40 @@
 # from constraint.node.SubstitutorVisitor import SubstitutorVisitor
+from enum import Enum
+
 
 
 class Node(object):
     def __init__(self):
         self.children = list()
+        self.node_type = NodeType.NODE
 
+
+
+# for visitor class. Using isinstance breaks when importing from outside
+class NodeType(Enum):
+    NODE = 0
+    LEQ = 1
+    GEQ = 2
+    LESS = 3
+    GREATER = 4
+    EQ = 5
+    NEQ = 6
+    IN = 7
+    VARIABLE = 8
+    CONSTANT = 9
+    ADDITION = 10
+    SUBTRACTION = 11
+    MULTIPLICATION = 12
+    EXPONENTIAL = 13
+
+    def __eq__(self, other):
+        return self.value == other.value
 
 
 class LEQ(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.LEQ
         self.children.append(op1)
         self.children.append(op2)
 
@@ -20,6 +45,7 @@ class LEQ(Node):
 class GEQ(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.GEQ
         self.children.append(op1)
         self.children.append(op2)
     def __str__(self):
@@ -28,6 +54,7 @@ class GEQ(Node):
 class Less(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.LESS
         self.children.append(op1)
         self.children.append(op2)
     def __str__(self):
@@ -36,6 +63,7 @@ class Less(Node):
 class Greater(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.GREATER
         self.children.append(op1)
         self.children.append(op2)
     def __str__(self):
@@ -45,6 +73,7 @@ class Greater(Node):
 class EQ(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.EQ
         self.children.append(op1)
         self.children.append(op2)
 
@@ -55,6 +84,7 @@ class EQ(Node):
 class NEQ(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.NEQ
         self.children.append(op1)
         self.children.append(op2)
 
@@ -65,6 +95,7 @@ class NEQ(Node):
 class In(Node):
     def __init__(self, op, op_low, op_up):
         Node.__init__(self)
+        self.node_type = NodeType.IN
         self.children.append(op)
         self.children.append(op_low)
         self.children.append(op_up)
@@ -77,6 +108,7 @@ class In(Node):
 class Variable(Node):
     def __init__(self, name):
         Node.__init__(self)
+        self.node_type = NodeType.VARIABLE
         self.name = name
 
     def __str__(self):
@@ -86,6 +118,7 @@ class Variable(Node):
 class Constant(Node):
     def __init__(self, value):
         Node.__init__(self)
+        self.node_type = NodeType.CONSTANT
         self.value = value
 
     def __str__(self):
@@ -95,6 +128,7 @@ class Constant(Node):
 class Addition(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.ADDITION
         self.children.append(op1)
         self.children.append(op2)
 
@@ -105,6 +139,7 @@ class Addition(Node):
 class Subtraction(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.SUBTRACTION
         self.children.append(op1)
         self.children.append(op2)
 
@@ -114,6 +149,7 @@ class Subtraction(Node):
 class Multiplication(Node):
     def __init__(self, op1, op2):
         Node.__init__(self)
+        self.node_type = NodeType.MULTIPLICATION
         self.children.append(op1)
         self.children.append(op2)
 
@@ -124,6 +160,7 @@ class Multiplication(Node):
 class Exponential(Node):
     def __init__(self, op1):
         Node.__init__(self)
+        self.node_type = NodeType.EXPONENTIAL
         self.children.append(op1)
 
     def __str__(self):

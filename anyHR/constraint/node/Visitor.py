@@ -10,31 +10,31 @@ class NodeVisitor:
     def visit(self, node, args):
         out = None
 
-        if isinstance(node, LEQ):
+        if node.node_type ==  NodeType.LEQ:
             out = self.visitLEQ(node, args)
-        elif isinstance(node, GEQ):
+        elif node.node_type ==  NodeType.GEQ:
             out = self.visitGEQ(node, args)
-        elif isinstance(node, Less):
+        elif node.node_type ==  NodeType.LESS:
             out = self.visitLess(node, args)
-        elif isinstance(node, Greater):
+        elif node.node_type ==  NodeType.GREATER:
             out = self.visitGreater(node, args)
-        elif isinstance(node, EQ):
+        elif node.node_type ==  NodeType.EQ:
             out = self.visitEQ(node, args)
-        elif isinstance(node, NEQ):
+        elif node.node_type ==  NodeType.NEQ:
             out = self.visitNEQ(node, args)
-        elif isinstance(node, In):
+        elif node.node_type ==  NodeType.IN:
             out = self.visitIn(node, args)
-        elif isinstance(node, Variable):
+        elif node.node_type ==  NodeType.VARIABLE:
             out = self.visitVariable(node, args)
-        elif isinstance(node, Constant):
+        elif node.node_type ==  NodeType.CONSTANT:
             out = self.visitConstant(node, args)
-        elif isinstance(node, Addition):
+        elif node.node_type ==  NodeType.ADDITION:
             out = self.visitAddition(node, args)
-        elif isinstance(node, Subtraction):
+        elif node.node_type ==  NodeType.SUBTRACTION:
             out = self.visitSubtraction(node, args)
-        elif isinstance(node, Multiplication):
+        elif node.node_type ==  NodeType.MULTIPLICATION:
             out = self.visitMultiplication(node, args)
-        elif isinstance(node, Exponential):
+        elif node.node_type ==  NodeType.EXPONENTIAL:
             out = self.visitExponential(node, args)
         else:
             raise Exception('Node Visitor: unexpected method called.')
