@@ -21,59 +21,52 @@ class SubstitutorVisitor(NodeVisitor):
 
     # this is the only interesting part:
     def visitVariable(self, node: Variable, args):
-        for var in self.pairs_dict.keys():
-            if node.name == var:
-                # Transforms the variable node to a constant node
-                node = Constant(self.pairs_dict[var])
-
-                # no need to look further
-                return
+        raise Exception('This should be unreachable.')
 
     def visitConstant(self, node: Constant, args):
         pass
 
-    # the rest just visits all children
+    # checks whether child is variable and whether we have a value for it
+    def substitute_children(self, node):
+        for i, child in enumerate(node.children):
+            if child.node_type == NodeType.VARIABLE:
+                if child.name in self.pairs_dict.keys():
+                    node.children[i] = Constant(self.pairs_dict[child.name]) # overwrites variable node with constant node
+            else:
+                self.visit(child,None)
+
+    # the rest visits children or substitutes variable children
     def visitLEQ(self, node: LEQ, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitGEQ(self, node: GEQ, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitGreater(self, node: Greater, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitLess(self, node: Less, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitEQ(self, node: EQ, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitNEQ(self, node: NEQ, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitIn(self, node: In, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
 
     def visitAddition(self, node: Addition, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitSubtraction(self, node: Subtraction, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitMultiplication(self, node: Multiplication, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
 
     def visitExponential(self, node: Exponential, args):
-        for child in node.children:
-            self.visit(child,None)
+        self.substitute_children(node)
+
