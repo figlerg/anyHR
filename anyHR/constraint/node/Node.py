@@ -8,6 +8,19 @@ class Node(object):
         self.children = list()
         self.node_type = NodeType.NODE
 
+    def get_vars(self, vars = set()):
+        # recursively crawls tree and writes down all the variables
+
+        # stop
+        if self.node_type == NodeType.VARIABLE:
+            vars.add(self.name)
+
+        # recursion
+        for child in self.children:
+            child.get_vars(vars)
+
+        return vars
+
 
 
 # for visitor class. Using isinstance breaks when importing from outside
