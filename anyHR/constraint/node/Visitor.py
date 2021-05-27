@@ -10,6 +10,7 @@ class NodeVisitor:
     def visit(self, node, args):
         out = None
 
+
         if node.node_type ==  NodeType.LEQ:
             out = self.visitLEQ(node, args)
         elif node.node_type ==  NodeType.GEQ:

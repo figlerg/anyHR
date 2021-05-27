@@ -2,7 +2,7 @@ from enum import Enum
 from functools import partial
 
 import matplotlib.pyplot as plt
-from scipy.spatial.distance import norm
+# from scipy.spatial.distance import norm
 from z3 import *
 
 from constraint.Constraint import Constraints
@@ -378,7 +378,7 @@ class HitAndRun:
             dir = np.random.uniform(-1, 1)
             direction.append(dir)
         direction = np.array(direction)
-        direction = direction / norm(direction)
+        direction = direction / np.linalg.norm(direction)
         return direction
 
     def optimize(self, func, threshold=-np.inf, maxiter=100, minfunc=1e-8, args=(), kwargs={}):
