@@ -1,5 +1,5 @@
-from constraint.node.Node import *
-from constraint.node.SubstitutorVisitor import SubstitutorVisitor
+from anyHR.constraint.node.Node import *
+from anyHR.constraint.node.SubstitutorVisitor import SubstitutorVisitor
 from typing import Dict
 
 def substitute(node:Node, var_val_pairs: Dict[str, float]):

@@ -2,15 +2,14 @@ from z3 import *
 from antlr4.InputStream import InputStream
 from antlr4.CommonTokenStream import CommonTokenStream
 
-from constraint.ConstraintQuantitativeEvaluator import ConstraintQuantitativeEvaluator
-from constraint.ConstrainttoZ3Equality import ConstrainttoZ3Equality
-from constraint.parser.ConstraintLexer import ConstraintLexer
-from constraint.parser.ConstraintParser import ConstraintParser
-from constraint.ConstrainttoZ3 import ConstrainttoZ3
-from constraint.ConstraintEvaluator import ConstraintEvaluator
+from anyHR.constraint.ConstraintQuantitativeEvaluator import ConstraintQuantitativeEvaluator
+from anyHR.constraint.ConstrainttoZ3Equality import ConstrainttoZ3Equality
+from anyHR.constraint.parser.ConstraintLexer import ConstraintLexer
+from anyHR.constraint.parser.ConstraintParser import ConstraintParser
+from anyHR.constraint.ConstrainttoZ3 import ConstrainttoZ3
+from anyHR.constraint.ConstraintEvaluator import ConstraintEvaluator
 
-from constraint.Constraint2Tree import Constraint2Tree
-from constraint.node.Node import Node
+from anyHR.constraint.Constraint2Tree import Constraint2Tree
 
 class Constraints:
     """

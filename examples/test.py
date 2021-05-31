@@ -1,20 +1,9 @@
-import numpy
-import pickle
-
 # Import modules
 import numpy as np
 import time
-
-# Import PySwarms
-
-
-import matplotlib
-import time
-from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 from anyHR.constraint.Constraint import Constraints
-from anyHR.hit_and_run.hit_and_run import HitAndRun, HRVariant
+from anyHR.hit_and_run.hit_and_run import HitAndRun
 
 
 def main_hit_and_run_2D_ball():
@@ -31,7 +20,7 @@ def main_hit_and_run_2D_ball():
     y_bound = [-10, 10]
     bounds = [x_bound, y_bound]
 
-    hr = HitAndRun(S=c, B=bounds, variant=HRVariant.CDHR)
+    hr = HitAndRun(S=c, B=bounds)
 
     a_s = []
     r_s = [[0, 0]]
@@ -53,7 +42,7 @@ def main_hit_and_run_2D_ball():
     plt.show()
     # plot_samples_2D(0, 1, var_names[0], var_names[1], a_s, r_s, None)
 
-def sample_n_sphere_hr(dim:int, n = 100, burn_in_period = 100, hr_mode:HRVariant = HRVariant.VANILLA, thickness = 0.1):
+def sample_n_sphere_hr(dim:int, n = 100, burn_in_period = 100, thickness = 0.1):
 
     start = time.perf_counter()
 
@@ -78,7 +67,7 @@ def sample_n_sphere_hr(dim:int, n = 100, burn_in_period = 100, hr_mode:HRVariant
     bounds = list([[-1,1] for name in var_names])
 
 
-    hr = HitAndRun(constraint=c, bounding_box=bounds,variant=hr_mode)
+    hr = HitAndRun(constraint=c, bounding_box=bounds)
 
     a_s = []
     r_s = [[0, 0]]

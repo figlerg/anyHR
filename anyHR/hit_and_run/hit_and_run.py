@@ -1,12 +1,10 @@
 from enum import Enum
 from functools import partial
 
-import matplotlib.pyplot as plt
-# from scipy.spatial.distance import norm
 from z3 import *
 
-from constraint.Constraint import Constraints
-from pso.pso_ezio import *
+from anyHR.constraint.Constraint import Constraints
+from anyHR.pso.pso import *
 import numpy as np
 
 

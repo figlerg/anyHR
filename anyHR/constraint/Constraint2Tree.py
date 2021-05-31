@@ -1,5 +1,5 @@
-from constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
-from constraint.node.Node import *
+from anyHR.constraint.parser.ConstraintParserVisitor import ConstraintParserVisitor
+from anyHR.constraint.node.Node import *
 
 
 class Constraint2Tree(ConstraintParserVisitor):

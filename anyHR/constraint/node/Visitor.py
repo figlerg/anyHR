@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from constraint.node.Node import *
+from anyHR.constraint.node.Node import *
 
 NOT_IMPLEMENTED = "You should implement this."
 

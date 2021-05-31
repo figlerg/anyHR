@@ -1,7 +1,7 @@
 from z3 import *
 
-from constraint.node.Node import *
-from constraint.node.Visitor import NodeVisitor
+from anyHR.constraint.node.Node import *
+from anyHR.constraint.node.Visitor import NodeVisitor
 
 
 class ConstrainttoZ3(NodeVisitor):
