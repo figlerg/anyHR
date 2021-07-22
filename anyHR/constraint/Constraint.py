@@ -73,7 +73,7 @@ class Constraints:
             translator = ConstrainttoZ3Equality(tree)
             z3_formula = translator.translate()
             self.c_contour_formulas.append(z3_formula)
-        except NotImplementedError:
+        except Exception:
             self.is_polynomial = False
 
         # # TEST WITHOUT TRY
