@@ -8,8 +8,8 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='AnyHR',
-    version='0.0.1',
+    name='anyHR',
+    version='1.0.0',
     description='Library implementing hit-and-run methods for sampling open bounded sets.',
     long_description=long_description,
     long_description_content_type="text/markdown",

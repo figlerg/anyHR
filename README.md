@@ -18,11 +18,11 @@ while being distributed uniformly on the set of allowed values.
 For more information on mixing algorithms see
 
 ## Installation
-It is necessary to have a working installation of
+It is necessary to have a working installation of Python 3,
 [pip](https://pip.pypa.io/en/stable/installing/) and [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)  for the following installation process.
 Open the target installation directory in a terminal and type
 ```bash
-pip install .
+pip install anyHR
 ```
 
 ## Use
