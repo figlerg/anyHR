@@ -1,3 +1,9 @@
+# This file includes modified source code from the GitHub project https://github.com/tisimst/pyswarm,
+# Copyright Abraham Lee
+
+# It is redistributed under the BSD license
+
+
 import numpy as np
 import logging
 

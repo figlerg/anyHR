@@ -48,6 +48,16 @@ class HitAndRun:
         assert(self.init_point == InitPoint.PSO or self.constraint.is_polynomial), \
             "You cannot use non-polynomial constraints with SMT"
 
+
+        # addition 12.04.2022, Felix: add constraints from box to the constraint object automatically
+        #  otherwise the initial point may be outside for the smt modes, since it does not check for those
+        variables = self.constraint.var_name_list
+        for i,var in enumerate(variables):
+            self.constraint.add_constraint(var + '>' + str(bounding_box[i][0]))
+            self.constraint.add_constraint(var + '<' + str(bounding_box[i][1]))
+
+
+
         # set the starting point- either with optimizer or with smt solver
         if init_point == InitPoint.PSO:
             self.starting_point = self._starting_point_pso()
