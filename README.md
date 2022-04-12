@@ -73,8 +73,12 @@ plt.show()
 ## References
 For more information about mixing algorithms, see:
 
-Smith, R. L. (1984). Efficient Monte Carlo procedures for generating points uniformly distributed over bounded regions. Operations Research, 32(6), 1296-1308.
+- Smith, R. L. (1984). Efficient Monte Carlo procedures for generating points uniformly distributed over bounded regions. Operations Research, 32(6), 1296-1308.
 
-Kiatsupaibul, S., Smith, R. L., & Zabinsky, Z. B. (2011). An analysis of a variation of hit-and-run for uniform sampling from general regions. ACM Transactions on Modeling and Computer Simulation (TOMACS), 21(3), 1-11.
+- Kiatsupaibul, S., Smith, R. L., & Zabinsky, Z. B. (2011). An analysis of a variation of hit-and-run for uniform sampling from general regions. ACM Transactions on Modeling and Computer Simulation (TOMACS), 21(3), 1-11.
 
-Neal, R. M. (2003). Slice sampling. The annals of statistics, 31(3), 705-767.
+- Neal, R. M. (2003). Slice sampling. The annals of statistics, 31(3), 705-767.
+
+
+We also thank Abraham Lee for his implementation of the PSO algorithms which is used here.
+See https://github.com/tisimst/pyswarm for more information.
