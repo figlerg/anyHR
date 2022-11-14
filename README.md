@@ -15,7 +15,7 @@ Hit-and-run algorithms can be used to get a sample uniformly at random inside of
 
 **anyHR** parses the parameters and their respective constraints and returns a number of samples that satisfy this spec, 
 while being distributed uniformly on the set of allowed values. 
-For more information on mixing algorithms see
+For more information on mixing algorithms see references below.
 
 ## Installation
 It is necessary to have a working installation of Python 3,
